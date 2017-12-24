@@ -7,9 +7,24 @@ const baseWebpackConfig = require('./webpack.base.conf')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
+const express = require('express')
+const axios = require('axios')
 
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
+
+
+const apiRouter = express.Router()
+apiRouter.get('/getDiscList', function() {
+  const url = 'https://y.qq.com/download/download.js'
+
+  axios.get(url, {
+    header: {
+      referer: 'https://y.qq.com'
+    }
+  })
+})
+
 
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
