@@ -13,18 +13,26 @@ const axios = require('axios')
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
+var app = express()
 
-const apiRouter = express.Router()
-apiRouter.get('/getDiscList', function() {
-  const url = 'https://y.qq.com/download/download.js'
+const apiRoutes = express.Router()
+apiRoutes.get('/getDiscList', function(req, res) {
+  const url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
 
   axios.get(url, {
-    header: {
-      referer: 'https://y.qq.com'
-    }
+    headers: {
+      referer: 'https://c.y.qq.com/',
+      host: 'c.y.qq.com'
+    },
+    params: req.query
+  }).then((response) => {
+    res.json(response.data)
+  }).catch((e) => {
+    console.log(e)
   })
 })
 
+app.use('/api', apiRoutes)
 
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
