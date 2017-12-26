@@ -20,12 +20,12 @@ export function getDiscList (){
     ein: 29,
     sortId: 5,
     needNewCode: 0,
-    cartgoryId: 10000000,
+    categoryId: 10000000,
     rnd: Math.random(),
     format: 'json'
   })
   return axios.get(url, {
-    param: data
+    params: data
   }).then((res) => {
     return Promise.resolve(res.data)
   })
