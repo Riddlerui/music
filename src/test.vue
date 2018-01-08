@@ -8,14 +8,10 @@
 export default {
   data() {
     return {};
-  },
-  created() {
-    console.log("---------create");
-  },
-  methods: {}
-};
+  }
+}
 </script>
 
-<style lang="less">
+<style scoped lang="stylus" rel="stylesheet/stylus">
 
 </style>
