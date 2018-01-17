@@ -1,12 +1,12 @@
 <template>
   <div class="recommend">
-    <scroll class="recommend-content" :data="discList">
+    <scroll ref="scroll" class="recommend-content" :data="discList">
       <div>
         <div v-if="recommends.length" class="slider-wrapper">
           <slider>
             <div v-for="item in recommends">
               <a :href="item.linkUrl">
-                <img :src="item.picUrl" alt="">
+                <img @load="loadImage" :src="item.picUrl" alt="">
               </a>
             </div>
           </slider>
@@ -57,11 +57,18 @@ export default {
     _getDiscList () {
       getDiscList().then((res) => {
         if (res.code == ERR_OK) {
-          this.discList = res.data.listnishenbian 
+          this.discList = res.data.list
         }
       })
+    },
+    loadImage () {
+      if (!this.checkLoaded) {
+        this.$refs.scroll.refresh()
+        this.checkLoaded =true
+      }
     }
   },
+  
   components: {
     Slider,
     Scroll
