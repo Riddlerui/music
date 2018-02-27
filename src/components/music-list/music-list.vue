@@ -4,11 +4,16 @@
       <i class="icon-back"></i>
     </div>
     <h1 class="title" v-html="title"></h1>
-    <div class="bg-image" :style="bgStyle">
+    <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="filter" ></div>
     </div>
-    <scroll>
+    <div class="bg-layer" ref="layer"></div>
+    <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" class="list" ref="list">
+      <div class="song-list-wrapper">
+        <song-list :songs="songs">
 
+        </song-list>
+      </div>
     </scroll>
   </div>
 </template>
@@ -32,10 +37,27 @@ export default {
       default: ''
     }
   },
+  data(){
+    return {
+      scrollY: 0
+    }
+  },
+  methods: {
+    scroll(pos) {
+      this.scrollY = pos.y
+    }
+  },
   computed: {
     bgStyle() {
-      return `background-iamge:url(${this.bgImage})`
+      return `background-image:url(${this.bgImage})`
     }
+  },
+  created() {
+    this.probeType = 3;
+    this.listenScroll = true;
+  },
+  mounted() {
+    this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`
   },
   components: {
     Scroll,

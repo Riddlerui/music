@@ -6,11 +6,11 @@
        :key="index"
        class="item">
         <div class="content">
-          <h2 class="name">{{somg.name}}</h2>
+          <h2 class="name">{{song.name}}</h2>
           <p class="desc">{{getDesc(song)}}</p>
         </div>
        </li>
-     </ul>
+     </ul> 
   </div>
 </template>
 
