@@ -30,7 +30,7 @@
             <div class="icon i-left">
               <i class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
+            <div @click="togglePlaying" class="icon i-center">
               <i class="icon-play"></i>
             </div>
             <div class="icon i-right">
@@ -58,13 +58,14 @@
         </div>
       </div>
     </transition>
+    <audio ref="audio" :src="currentSong.url"></audio>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
 import { mapGetters, mapMutations } from "vuex";
-import animations from 'create-keyframe-animation'
-import {prefixStyle} from 'common/js/dom'
+import animations from "create-keyframe-animation";
+import { prefixStyle } from "common/js/dom";
 const transform = prefixStyle("transform");
 
 export default {
@@ -75,7 +76,7 @@ export default {
     console.log(this.currentSong);
   },
   computed: {
-    ...mapGetters(["fullScreen", "playlist", "currentSong"])
+    ...mapGetters(["fullScreen", "playlist", "currentSong","playing"])
   },
   methods: {
     back() {
@@ -125,6 +126,9 @@ export default {
       this.$refs.cdWrapper.style.transition = "";
       this.$refs.cdWrapper.style[transform] = "";
     },
+    togglePlaying() {
+      this.setPlayState(!this.playing);
+    },
     _getPosAndScale() {
       const targetWidth = 40;
       const paddingLeft = 40;
@@ -141,8 +145,22 @@ export default {
       };
     },
     ...mapMutations({
-      setFullScreen: "SET_FULL_SCREEN"
+      setFullScreen: "SET_FULL_SCREEN",
+      setPlayState: "SET_PLAYING_STATE"
     })
+  },
+  watch: {
+    currentSong() {
+      this.$nextTick(() => {
+        this.$refs.audio.play();
+      });
+    },
+    playing(newPlaying) {
+      const audio = this.$refs.audio
+      this.$nextTick(() => {
+      newPlaying ? audio.play() : audio.pause()
+      })
+    }
   }
 };
 </script>
