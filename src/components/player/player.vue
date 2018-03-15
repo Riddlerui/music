@@ -31,8 +31,8 @@
             <span class="time time-r">{{formate(currentSong.duration)}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" @click="changeMode">
+              <i :class="playMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i @click="prev" class="icon-prev"></i>
@@ -69,7 +69,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
+    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
   </div>
 </template>
 
@@ -79,6 +79,8 @@ import animations from "create-keyframe-animation";
 import { prefixStyle } from "common/js/dom";
 import ProgressBar from "base/progress-bar/progress-bar";
 import ProgressCricle from "base/progress-circle/progress-circle";
+import {playMode} from 'common/js/config';
+import {shuffle} from 'common/js/util';
 
 const transform = prefixStyle("transform");
 
@@ -91,7 +93,7 @@ export default {
     };
   },
   created() {
-    console.log(this.currentSong);
+    // console.log(this.currentSong);
   },
   computed: {
     cdCls() {
@@ -109,12 +111,17 @@ export default {
     percent() {
       return this.currentTime / this.currentSong.duration
     },
+    playMode() {
+      return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+    },
     ...mapGetters([
       "fullScreen",
       "playlist",
       "currentSong",
       "playing",
-      "currentIndex"
+      "currentIndex",
+      "mode",
+      "sequenceList"
     ])
   },
   methods: {
@@ -123,38 +130,6 @@ export default {
     },
     open() {
       this.setFullScreen(true);
-    },
-    next() {
-      if (!this.songReady) {
-        return;
-      }
-      let index = this.currentIndex + 1;
-      if (index === this.currentSong.length) {
-        index = 0;
-      }
-      this.setCurrentIndex(index);
-      if (!this.playing) {
-        this.togglePlaying();
-      }
-    },
-    prev() {
-      if (!this.songReady) {
-        return;
-      }
-      let index = this.currentIndex - 1;
-      if (index === -1) {
-        index = this.currentSong.length - 1;
-      }
-      this.setCurrentIndex(index);
-      if (!this.playing) {
-        this.togglePlaying();
-      }
-    },
-    ready() {
-      this.songReady = true;
-    },
-    error() {
-      this.songReady = true;
     },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale();
@@ -181,29 +156,6 @@ export default {
 
       animations.runAnimation(this.$refs.cdWrapper, "move", done);
     },
-    updateTime(e) {
-      this.currentTime = e.target.currentTime;
-    },
-    formate(interval) {
-      interval = interval | 0;
-      const minute = (interval / 60) | 0;
-      const second = this._pad(interval % 60);
-      return `${minute}:${second}`;
-    },
-    onProgressBarChange(percent) {
-      this.$refs.audio.currentTime = this.currentSong.duration * percent;
-      if(!this.playing) {
-        this.togglePlaying();
-      }
-    },
-    _pad(num, n = 2) {
-      let len = num.toString().length;
-      while (len < n) {
-        num = "0" + num;
-        len++;
-      }
-      return num;
-    },
     afterEnter() {
       animations.unregisterAnimation("move");
       this.$refs.cdWrapper.style.animation = "";
@@ -226,6 +178,91 @@ export default {
       }
       this.setPlayState(!this.playing);
     },
+    end() {
+      if(this.mode === playMode.loop){
+        this.loop();
+      } else {
+        this.next()
+      }
+      
+    },   
+    next() {
+      if (!this.songReady) {
+        return;
+      }
+      let index = this.currentIndex + 1;
+      if (index === this.currentSong.length) {
+        index = 0;
+      }
+      this.setCurrentIndex(index);
+      if (!this.playing) {
+        this.togglePlaying();
+      }
+    },
+    loop() {
+      this.$refs.audio.currentTime = 0
+      this.$refs.audio.play()
+    },
+    prev() {
+      if (!this.songReady) {
+        return;
+      }
+      let index = this.currentIndex - 1;
+      if (index === -1) {
+        index = this.currentSong.length - 1;
+      }
+      this.setCurrentIndex(index);
+      if (!this.playing) {
+        this.togglePlaying();
+      }
+    },
+    ready() {
+      this.songReady = true;
+    },
+    error() {
+      this.songReady = true;
+    },
+    updateTime(e) {
+      this.currentTime = e.target.currentTime;
+    },
+    formate(interval) {
+      interval = interval | 0;
+      const minute = (interval / 60) | 0;
+      const second = this._pad(interval % 60);
+      return `${minute}:${second}`;
+    },
+    onProgressBarChange(percent) {
+      this.$refs.audio.currentTime = this.currentSong.duration * percent;
+      if(!this.playing) {
+        this.togglePlaying();
+      }
+    },
+    changeMode() {
+      const mode = (this.mode + 1) % 3
+      this.setPlayMode(mode)
+      let list = null;
+      if(mode === playMode.random){
+        list = shuffle(this.sequenceList)
+      } else {
+        list = this.sequenceList
+      }
+      this.resetCurrentIndex(list)
+      this.setPlaylist(list)
+    },
+    resetCurrentIndex(list) {
+      let index = list.findIndex((item) => {
+        return item.id ===  this.currentSong.id
+      })
+      this.setCurrentIndex(index)
+    },
+    _pad(num, n = 2) {
+      let len = num.toString().length;
+      while (len < n) {
+        num = "0" + num;
+        len++;
+      }
+      return num;
+    },
     _getPosAndScale() {
       const targetWidth = 40;
       const paddingLeft = 40;
@@ -244,13 +281,19 @@ export default {
     ...mapMutations({
       setFullScreen: "SET_FULL_SCREEN",
       setPlayState: "SET_PLAYING_STATE",
-      setCurrentIndex: "SET_CURRENT_INDEX"
+      setCurrentIndex: "SET_CURRENT_INDEX",
+      setPlayMode: "SET_PLAY_MODE",
+      setPlaylist: "SET_PLAYLIST"
     })
   },
   watch: {
-    currentSong() {
+    currentSong(newSong, oldSong) {
+      if(newSong.id === oldSong.id) {
+        return
+      }
       this.$nextTick(() => {
         this.$refs.audio.play();
+        this.currentSong.getLyric();
       });
     },
     playing(newPlaying) {

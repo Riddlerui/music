@@ -41,9 +41,9 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     },
     // 在这里添加一个before方法
     before(apiRoutes) {
-      apiRoutes.get('/api/getDiscList', function(req, res) {
+      apiRoutes.get('/api/getDiscList', function (req, res) {
         const url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
-      
+
         axios.get(url, {
           headers: {
             referer: 'https://c.y.qq.com/',
@@ -55,7 +55,30 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         }).catch((e) => {
           console.log(e)
         })
-      })
+      }),
+        apiRoutes.get('/api/lyric', function (req, res) {
+          const url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
+
+          axios.get(url, {
+            headers: {
+              referer: 'https://c.y.qq.com/',
+              host: 'c.y.qq.com'
+            },
+            params: req.query
+          }).then((response) => {
+            var ret = response.data;
+            if(typeof ret === 'string') {
+              var reg = /^\w+\(({[^()]+})\)$/;
+              var matches = ret.match(reg);
+              if(matches) {
+                ret = JSON.parse(matches[1])
+              }
+            }
+            res.json(ret)
+          }).catch((e) => {
+            console.log(e)
+          })
+        })
     }
   },
   plugins: [
@@ -91,8 +114,8 @@ module.exports = new Promise((resolve, reject) => {
           messages: [`Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`],
         },
         onErrors: config.dev.notifyOnErrors
-        ? utils.createNotifierCallback()
-        : undefined
+          ? utils.createNotifierCallback()
+          : undefined
       }))
 
       resolve(devWebpackConfig)

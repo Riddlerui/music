@@ -1,3 +1,6 @@
+import {getLyric} from 'api/song';
+import {ERR_OK} from 'api/config';
+
 export default class Song {
   constructor ({id, mid, singer, name, album, duration, image, url}) {
     this.id = id
@@ -8,6 +11,14 @@ export default class Song {
     this.duration = duration
     this.image = image
     this.url = url
+  }
+  getLyric() {
+    getLyric(this.mid).then((res) =>{
+      if(res.retcode === ERR_OK) {
+        this.lyric = res.lyric
+        console.log(this.lyric)
+      }
+    })
   }
 }
 
@@ -46,7 +57,7 @@ export function createSong(musicData) {
     // url: `http://dl.stream.qqmusic.qq.com/C400${
     //   musicData.songmid
     // }.m4a?guid=9035189320&vkey=F45CF08E99A296E05513E32A93FB60D08AB5BFC9141579AEE02158FA73B176DB7775B506740ED3940F48B51C15FB40FBB1C20F6DBADE946D&uin=&fromtag=999`
-    url: `http://isure.stream.qqmusic.qq.com/C100${musicData.songmid}.m4a?fromtag=32`
+    url: `http://isure.stream.qqmusic.qq.com/C100${songmid}.m4a?fromtag=32`
   })
 }
 
