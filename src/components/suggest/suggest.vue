@@ -6,7 +6,7 @@
   @scrollToEnd="searchMore" 
   ref="suggest">
       <ul class="suggest-list">
-          <li class="suggest-item" v-for="(item,index) in result" :key="index">
+          <li @click="selectItem(item)" class="suggest-item" v-for="(item,index) in result" :key="index">
               <div class="icon">
                   <i :class="getIconCls(item)"></i>
               </div>
@@ -25,6 +25,8 @@ import {ERR_OK} from 'api/config'
 import {createSong} from 'common/js/song'
 import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading' 
+import Singer from 'common/js/singer'
+import {mapMutations, mapActions} from "vuex"
 
 const TYPE_SINGER = 'singer'
 const perpage = 20
@@ -57,6 +59,7 @@ export default {
                  if(res.code === ERR_OK) {
                     this.result = this._genResult(res.data)
                     this._checkMore(res.data)
+                    // console.log(res.data)
                  }
             })
         },
@@ -80,10 +83,25 @@ export default {
             }
         },
         getDisplayName(item){
+            // console.log(item)
             if(item.type === TYPE_SINGER) {
                 return item.singername
             } else{
                 return `${item.name}-${item.singer}`
+            }
+        },
+        selectItem(item) {
+            if(item.type === TYPE_SINGER){
+                const singer = new Singer({
+                    id: item.singermid,
+                    name: item.singername
+                })
+                this.$router.push({
+                    path: `/search/${singer.id}`
+                })
+                this.setSinger(singer)
+            } else {
+                this.insertSong(item)
             }
         },
          _checkMore(data) {
@@ -110,7 +128,13 @@ export default {
                 }
             });
             return ret
-        }
+        },
+        ...mapMutations({
+            setSinger:'SET_SINGER'
+        }),
+        ...mapActions([
+            'insertSong'
+        ])
     },
     watch: {
         query() {
@@ -119,7 +143,7 @@ export default {
     },
     components: {
         Scroll,
-        Loading
+        Loading,
     }
 }
 </script>
