@@ -23,6 +23,10 @@ export default {
     listenScroll: {
       type: Boolean,
       default: false
+    },
+    pullup: {
+      type: Boolean,
+      type: false
     }
   },
   mounted() {
@@ -45,6 +49,14 @@ export default {
         this.scroll.on('scroll', (pos) => {
           // 这里的this指的是scroll中的
           me.$emit('scroll', pos)
+        })
+      }
+
+      if(this.pullup){
+        this.scroll.on('scrollEnd', () =>{
+          if(this.scroll.y <= (this.scroll.maxScrollY + 50)){
+            this.$emit('scrollToEnd')
+          }
         })
       }
     },
